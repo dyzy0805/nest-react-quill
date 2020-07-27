@@ -6,6 +6,8 @@ https://github.com/zenoamaro/react-quill
 import React from 'react';
 import ReactDOM from 'react-dom';
 import isEqual from 'lodash/isEqual';
+// @ts-ignore
+import MarkdownActivity from './markdownhoc';
 
 import Quill, {
   QuillOptionsStatic,
@@ -328,6 +330,7 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   */
   createEditor(element: Element, config: QuillOptions) {
     const editor = new Quill(element, config);
+    new MarkdownActivity(editor);
     if (config.tabIndex != null) {
       this.setEditorTabIndex(editor, config.tabIndex);
     }
