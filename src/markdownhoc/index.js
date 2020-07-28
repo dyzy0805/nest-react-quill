@@ -3,11 +3,11 @@
  * @Author: dongyue
  * @CreateDate: 
  * @LastEditors: dongyue
- * @LastEditTime: 2020-07-27 18:11:36
+ * @LastEditTime: 2020-07-28 14:17:25
  */ 
 import TagsOperators from './tags'
 
-class MarkdownActivity {
+class MarkdownEngine {
   constructor (quillJS) {
     this.quillJS = quillJS
     this.quillJS.on('text-change', this.onTextChange.bind(this))
@@ -77,4 +77,4 @@ class MarkdownActivity {
   }
 }
 
-export default MarkdownActivity
+export default MarkdownEngine

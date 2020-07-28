@@ -1,13 +1,10 @@
 {
-  "name": "react-quill",
-  "version": "2.0.0-beta.2",
-  "description": "The Quill rich-text editor as a React component.",
-  "author": "zenoamaro <zenoamaro@gmail.com>",
+  "name": "nest-react-quill",
+  "version": "1.0.3",
+  "description": "The Quill rich-text editor as a React component with markdown.",
+  "author": "dongyue",
   "license": "MIT",
-  "homepage": "https://github.com/zenoamaro/react-quill",
-  "bugs": "https://github.com/zenoamaro/react-quill/issues",
-  "repository": "https://github.com/zenoamaro/react-quill.git",
-  "main": "lib/index.js",
+  "main": "dist/react-quill.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "npm run build:lib && npm run build:dist && npm run build:css",
