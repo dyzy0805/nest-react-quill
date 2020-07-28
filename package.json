@@ -1,6 +1,6 @@
 {
   "name": "nest-react-quill",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "The Quill rich-text editor as a React component with markdown.",
   "author": "dongyue",
   "license": "MIT",
