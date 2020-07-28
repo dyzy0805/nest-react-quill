@@ -3,8 +3,9 @@
  # @Author: dongyue
  # @CreateDate: 
  # @LastEditors: dongyue
- # @LastEditTime: 2020-07-28 14:19:35
+ # @LastEditTime: 2020-07-28 14:22:02
 ### 
+npm version patch
 git add .
 git commit -m "update"
 git push
