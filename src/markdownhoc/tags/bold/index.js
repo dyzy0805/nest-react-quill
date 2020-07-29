@@ -3,11 +3,11 @@
  * @Author: dongyue
  * @CreateDate: 
  * @LastEditors: dongyue
- * @LastEditTime: 2020-07-27 17:49:17
+ * @LastEditTime: 2020-07-29 14:35:17
  */ 
 class Bold {
-    constructor (quillJS) {
-      this.quillJS = quillJS
+    constructor (editor) {
+      this.editor = editor
       this.name = 'bold'
       this.pattern = /(?:\*|_){2}(.+?)(?:\*|_){2}/g
       this.getAction.bind(this)
@@ -27,9 +27,9 @@ class Bold {
           if (text.match(/^([*_ \n]+)$/g)) return
   
           setTimeout(() => {
-            this.quillJS.deleteText(startIndex, annotatedText.length)
-            this.quillJS.insertText(startIndex, matchedText, { bold: true })
-            this.quillJS.format('bold', false)
+            this.editor.deleteText(startIndex, annotatedText.length)
+            this.editor.insertText(startIndex, matchedText, { bold: true })
+            this.editor.format('bold', false)
           }, 0)
         }
       }

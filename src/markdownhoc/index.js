@@ -1,33 +1,33 @@
 /*
- * @Desrcription: 通过HOC给quill提供markdown能力
+ * @Desrcription: 给quill提供markdown能力
  * @Author: dongyue
  * @CreateDate: 
  * @LastEditors: dongyue
- * @LastEditTime: 2020-07-28 14:17:25
+ * @LastEditTime: 2020-07-29 15:36:06
  */ 
 import TagsOperators from './tags'
 
 class MarkdownEngine {
-  constructor (quillJS) {
-    this.quillJS = quillJS
-    this.quillJS.on('text-change', this.onTextChange.bind(this))
+  constructor (editor) {
+    this.editor = editor;
+    this.editor.on('text-change', this.onTextChange.bind(this))
     this.actionCharacters = {
       whiteSpace: ' ',
       newLine: '\n'
     }
     this.ignoreTags = ['PRE']
-    this.tags = new TagsOperators(this.quillJS)
+    this.tags = new TagsOperators(this.editor)
     this.matches = this.tags.getOperatorsAll()
   }
 
-  onTextChange (delta, oldContents, source) {
+  onTextChange (delta) {
     delta.ops.filter(e => e.hasOwnProperty('insert')).forEach(e => {
       switch (e.insert) {
         case this.actionCharacters.whiteSpace:
-          this.onQuery.bind(this)()
+          this.onQuery()
           break
         case this.actionCharacters.newLine:
-          this.onExecute.bind(this)()
+          this.onExecute()
           break
       }
     })
@@ -42,9 +42,9 @@ class MarkdownEngine {
   }
 
   onQuery () {
-    const selection = this.quillJS.getSelection()
+    const selection = this.editor.getSelection()
     if (!selection) return
-    const [line, offset] = this.quillJS.getLine(selection.index)
+    const [line, offset] = this.editor.getLine(selection.index)
     const text = line.domNode.textContent
     const lineStart = selection.index - offset
     if (this.isValid(text, line.domNode.tagName)) {
@@ -59,9 +59,9 @@ class MarkdownEngine {
   }
 
   onExecute () {
-    let selection = this.quillJS.getSelection()
+    let selection = this.editor.getSelection()
     if (!selection) return
-    const [line, offset] = this.quillJS.getLine(selection.index)
+    const [line, offset] = this.editor.getLine(selection.index)
     const text = line.domNode.textContent + ' '
     const lineStart = selection.index - offset
     selection.length = selection.index++
