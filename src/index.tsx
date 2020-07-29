@@ -68,7 +68,28 @@ namespace ReactQuill {
     tabIndex?: number,
     theme?: string,
     value?: Value,
+    tags?: any[]
   }
+
+  // {
+  //   name: this.name,
+  //   pattern: this.pattern,
+  //   action: (text, selection, pattern, lineStart) => {
+  //     let match = pattern.exec(text)
+
+  //     const annotatedText = match[0]
+  //     const matchedText = match[1]
+  //     const startIndex = lineStart + match.index
+
+  //     if (text.match(/^([*_ \n]+)$/g)) return
+
+  //     setTimeout(() => {
+  //       this.editor.deleteText(startIndex, annotatedText.length)
+  //       this.editor.insertText(startIndex, matchedText, { bold: true })
+  //       this.editor.format('bold', false)
+  //     }, 0)
+  //   }
+  // }
 
   export interface UnprivilegedEditor {
     getLength(): number;
@@ -329,8 +350,9 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   configuration, have its events bound,
   */
   createEditor(element: Element, config: QuillOptions) {
+    const { tags = [] } = this.props;
     const editor = new Quill(element, config);
-    new MarkdownEngine(editor);
+    new MarkdownEngine(editor, tags);
     if (config.tabIndex != null) {
       this.setEditorTabIndex(editor, config.tabIndex);
     }

@@ -3,21 +3,22 @@
  * @Author: dongyue
  * @CreateDate: 
  * @LastEditors: dongyue
- * @LastEditTime: 2020-07-29 15:36:06
+ * @LastEditTime: 2020-07-29 18:07:53
  */ 
 import TagsOperators from './tags'
 
 class MarkdownEngine {
-  constructor (editor) {
+  constructor (editor, tags) {
     this.editor = editor;
-    this.editor.on('text-change', this.onTextChange.bind(this))
+    this.editor.on('text-change', this.onTextChange.bind(this));
     this.actionCharacters = {
       whiteSpace: ' ',
       newLine: '\n'
     }
-    this.ignoreTags = ['PRE']
-    this.tags = new TagsOperators(this.editor)
-    this.matches = this.tags.getOperatorsAll()
+    this.ignoreTags = ['PRE'];
+    this.tags = new TagsOperators(this.editor, tags);
+    this.matches = this.tags.getOperatorsAll();
+    console.info(this.matches)
   }
 
   onTextChange (delta) {
