@@ -1,10 +1,10 @@
 {
   "name": "nest-react-quill",
-  "version": "1.0.7",
+  "version": "1.0.14",
   "description": "The Quill rich-text editor as a React component with markdown.",
   "author": "dongyue",
   "license": "MIT",
-  "main": "dist/react-quill.js",
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "npm run build:lib && npm run build:dist && npm run build:css",

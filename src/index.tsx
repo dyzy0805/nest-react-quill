@@ -6,8 +6,6 @@ https://github.com/zenoamaro/react-quill
 import React from 'react';
 import ReactDOM from 'react-dom';
 import isEqual from 'lodash/isEqual';
-// @ts-ignore
-import MarkdownEngine from './markdownhoc';
 
 import Quill, {
   QuillOptionsStatic,
@@ -68,7 +66,7 @@ namespace ReactQuill {
     tabIndex?: number,
     theme?: string,
     value?: Value,
-    tags?: any[]
+    mode?: String
   }
 
   // {
@@ -203,7 +201,7 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
 
   constructor(props: ReactQuillProps) {
     super(props);
-    const value = this.isControlled()? props.value : props.defaultValue;
+    const value = this.isControlled() ? props.value : props.defaultValue;
     this.value = value ?? '';
   }
 
@@ -289,15 +287,15 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
     if (this.editor && this.shouldComponentRegenerate(prevProps)) {
       const delta = this.editor.getContents();
       const selection = this.editor.getSelection();
-      this.regenerationSnapshot = {delta, selection};
-      this.setState({generation: this.state.generation + 1});
+      this.regenerationSnapshot = { delta, selection };
+      this.setState({ generation: this.state.generation + 1 });
       this.destroyEditor();
     }
 
     // The component has been regenerated, so it must be re-instantiated, and
     // its content must be restored to the previous values from the snapshot.
     if (this.state.generation !== prevState.generation) {
-      const {delta, selection} = this.regenerationSnapshot!;
+      const { delta, selection } = this.regenerationSnapshot!;
       delete this.regenerationSnapshot;
       this.instantiateEditor();
       const editor = this.editor!;
@@ -350,9 +348,9 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   configuration, have its events bound,
   */
   createEditor(element: Element, config: QuillOptions) {
-    const { tags = [] } = this.props;
+    // const { mode } = this.props;
     const editor = new Quill(element, config);
-    new MarkdownEngine(editor, tags);
+    new MarkdownEngine(editor);
     if (config.tabIndex != null) {
       this.setEditorTabIndex(editor, config.tabIndex);
     }
@@ -419,8 +417,8 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
     if (range) {
       // Validate bounds before applying.
       const length = editor.getLength();
-      range.index = Math.max(0, Math.min(range.index, length-1));
-      range.length = Math.max(0, Math.min(range.length, (length-1) - range.index));
+      range.index = Math.max(0, Math.min(range.index, length - 1));
+      range.length = Math.max(0, Math.min(range.length, (length - 1) - range.index));
       editor.setSelection(range);
     }
   }
@@ -446,12 +444,12 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   makeUnprivilegedEditor(editor: Quill) {
     const e = editor;
     return {
-      getHTML:      () => e.root.innerHTML,
-      getLength:    e.getLength.bind(e),
-      getText:      e.getText.bind(e),
-      getContents:  e.getContents.bind(e),
+      getHTML: () => e.root.innerHTML,
+      getLength: e.getLength.bind(e),
+      getText: e.getText.bind(e),
+      getContents: e.getContents.bind(e),
       getSelection: e.getSelection.bind(e),
-      getBounds:    e.getBounds.bind(e),
+      getBounds: e.getBounds.bind(e),
     };
   }
 
@@ -473,8 +471,8 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   Renders an editor area, unless it has been provided one to clone.
   */
   renderEditingArea(): JSX.Element {
-    const {children, preserveWhitespace} = this.props;
-    const {generation} = this.state;
+    const { children, preserveWhitespace } = this.props;
+    const { generation } = this.state;
 
     const properties = {
       key: generation,
@@ -491,8 +489,8 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
     }
 
     return preserveWhitespace ?
-      <pre {...properties}/> :
-      <div {...properties}/>;
+      <pre {...properties} /> :
+      <div {...properties} />;
   }
 
   render() {
@@ -588,6 +586,204 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
     if (!this.editor) return;
     this.selection = null;
     this.editor.blur();
+  }
+}
+
+class MarkdownEngine {
+  editor: Quill;
+  actionCharacters: {
+    whiteSpace: string,
+    newLine: string
+  };
+  ignoreTags: string[];
+  tags: TagsOperators;
+  matches: any;
+  constructor(editor: Quill) {
+    this.editor = editor;
+    this.editor.on('text-change', this.onTextChange.bind(this));
+    this.actionCharacters = {
+      whiteSpace: ' ',
+      newLine: '\n'
+    }
+    this.ignoreTags = ['PRE'];
+    this.tags = new TagsOperators(this.editor);
+    this.matches = this.tags.getOperatorsAll();
+  }
+
+  onTextChange(delta: any) {
+    delta.ops.filter((e: any) => e.hasOwnProperty('insert')).forEach((e: any) => {
+      switch (e.insert) {
+        case this.actionCharacters.whiteSpace:
+          this.onQuery();
+          break
+        case this.actionCharacters.newLine:
+          this.onExecute();
+          break
+      }
+    })
+  }
+
+  isValid(text: string, tagName: string) {
+    return (
+      typeof text !== 'undefined' &&
+      text && this.ignoreTags.indexOf(tagName) === -1
+    )
+  }
+
+  onQuery() {
+    const selection = this.editor.getSelection()
+    if (!selection) return
+    const [line, offset] = this.editor.getLine(selection.index)
+    const text = line.domNode.textContent
+    const lineStart = selection.index - offset
+    if (this.isValid(text, line.domNode.tagName)) {
+      for (let match of this.matches) {
+        const matchedText = text.match(match.pattern)
+        if (matchedText) {
+          match.action(text, selection, match.pattern, lineStart)
+          return
+        }
+      }
+    }
+  }
+
+  onExecute() {
+    let selection = this.editor.getSelection()
+    if (!selection) return
+    const [line, offset] = this.editor.getLine(selection.index)
+    const text = line.domNode.textContent + ' '
+    const lineStart = selection.index - offset
+    selection.length = selection.index++
+    if (this.isValid(text, line.domNode.tagName)) {
+      for (let match of this.matches) {
+        const matchedText = text.match(match.pattern)
+        if (matchedText) {
+          match.action(text, selection, match.pattern, lineStart)
+          return
+        }
+      }
+    }
+  }
+}
+
+class TagsOperators {
+  editor: Quill;
+  tags: object[];
+  constructor(editor: Quill) {
+    this.editor = editor;
+    this.getOperatorsAll.bind(this);
+    this.tags = [
+      new Bold(this.editor).getAction(),
+      new Header(this.editor).getAction(),
+      new Link(this.editor).getAction()
+    ];
+  }
+
+  getOperatorsAll() {
+    return this.tags;
+  }
+}
+
+class Bold {
+  editor: Quill;
+  name: string;
+  pattern: RegExp;
+  constructor(editor: Quill) {
+    this.editor = editor;
+    this.name = 'bold'
+    this.pattern = /(?:\*|_){2}(.+?)(?:\*|_){2}/g;
+    this.getAction.bind(this);
+  }
+
+  getAction() {
+    return {
+      name: this.name,
+      pattern: this.pattern,
+      action: (text: string, selection: Range, pattern: RegExp, lineStart: number) => {
+        let match: RegExpExecArray | null = pattern.exec(text)
+        if (match) {
+          const annotatedText = match[0];
+          const matchedText = match[1];
+          const startIndex = lineStart + match.index;
+
+          if (text.match(/^([*_ \n]+)$/g)) return;
+
+          setTimeout(() => {
+            this.editor.deleteText(startIndex, annotatedText.length);
+            this.editor.insertText(startIndex, matchedText, { bold: true });
+            this.editor.format('bold', false);
+          }, 0)
+        }
+      }
+    }
+  }
+}
+
+class Header {
+  editor: Quill;
+  name: string;
+  pattern: RegExp;
+  constructor(editor: Quill) {
+    this.editor = editor
+    this.name = 'header'
+    this.pattern = /^(#){1,6}\s/g
+    this.getAction.bind(this)
+  }
+
+  getAction() {
+    return {
+      name: this.name,
+      pattern: this.pattern,
+      action: (text: string, selection: Range, pattern: RegExp) => {
+        const match = pattern.exec(text)
+        if (!match) return
+        const size = match[0].length
+        if (selection) {
+          setTimeout(() => {
+            this.editor.formatLine(selection.index, 0, 'header', size - 1)
+            this.editor.deleteText(selection.index - size, size)
+          }, 0)
+        }
+      }
+    }
+  }
+}
+
+class Link {
+  editor: Quill;
+  name: string;
+  pattern: RegExp;
+  constructor(editor: Quill) {
+    this.editor = editor;
+    this.name = 'link';
+    this.pattern = /(?:\[(.+?)\])(?:\((.+?)\))/g;
+    this.getAction.bind(this);
+  }
+
+  getAction() {
+    return {
+      name: this.name,
+      pattern: this.pattern,
+      action: (text: string, selection: Range, pattern: RegExp) => {
+        const startIndex = text.search(pattern);
+        // @ts-ignore
+        const matchedText = text.match(pattern)[0],
+          // @ts-ignore
+          hrefText = text.match(/(?:\[(.*?)\])/g)[0],
+          // @ts-ignore
+          hrefLink = text.match(/(?:\((.*?)\))/g)[0];
+        if (selection) {
+          const start = selection.index - matchedText.length - 1
+          if (startIndex !== -1) {
+            setTimeout(() => {
+              this.editor.deleteText(start, matchedText.length)
+              this.editor.insertText(start, hrefText.slice(1, hrefText.length - 1),
+                'link', hrefLink.slice(1, hrefLink.length - 1))
+            }, 0)
+          }
+        }
+      }
+    }
   }
 }
 
