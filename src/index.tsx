@@ -16,6 +16,9 @@ import Quill, {
   Sources,
 } from 'quill';
 
+// @ts-ignore
+import { createNestQuill } from 'nest-quill';
+
 // Merged namespace hack to export types along with default object
 // See: https://github.com/Microsoft/TypeScript/issues/2719
 namespace ReactQuill {
@@ -348,9 +351,8 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   configuration, have its events bound,
   */
   createEditor(element: Element, config: QuillOptions) {
-    // const { mode } = this.props;
-    const editor = new Quill(element, config);
-    new MarkdownEngine(editor);
+    // const editor = new Quill(element, config);
+    const editor = createNestQuill({ container: element, config });
     if (config.tabIndex != null) {
       this.setEditorTabIndex(editor, config.tabIndex);
     }
