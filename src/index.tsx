@@ -352,7 +352,7 @@ class ReactQuill extends React.Component<ReactQuillProps, ReactQuillState> {
   */
   createEditor(element: Element, config: QuillOptions) {
     // const editor = new Quill(element, config);
-    const editor = createNestQuill({ container: element, config });
+    const editor = createNestQuill({ container: element });
     if (config.tabIndex != null) {
       this.setEditorTabIndex(editor, config.tabIndex);
     }
